@@ -4,12 +4,13 @@ import { DatabaseSchema, TableSchema } from '../schemas';
 
 let aiClient: GoogleGenerativeAI | null = null;
 
-export function getAiClient(): GoogleGenerativeAI | null {
+export function getAiClient(apiKey?: string): GoogleGenerativeAI | null {
   if (aiClient) return aiClient;
 
-  // Read API Key from VS Code Configuration
-  const config = vscode.workspace.getConfiguration('dataGenerator');
-  const apiKey = config.get<string>('geminiApiKey');
+  if (!apiKey) {
+    // Check environment for bot fallback
+    apiKey = process.env.GEMINI_API_KEY;
+  }
 
   if (!apiKey) {
     return null;
@@ -28,11 +29,12 @@ export async function generateSeedDataForDatabase(
   schema: DatabaseSchema,
   tableNames: string[],
   prompt?: string,
+  apiKey?: string,
   seedSize: number = 8
 ): Promise<Record<string, any[]> | null> {
-  const client = getAiClient();
+  const client = getAiClient(apiKey);
   if (!client) {
-    throw new Error("Gemini API Client not configured. Please set dataGenerator.geminiApiKey in settings.");
+    throw new Error("Gemini API Key is missing. Please provide it in the UI.");
   }
 
   const selectedTables = schema.tables.filter(t => tableNames.includes(t.name));

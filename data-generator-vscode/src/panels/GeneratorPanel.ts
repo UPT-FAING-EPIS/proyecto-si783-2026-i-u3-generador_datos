@@ -111,11 +111,11 @@ export class GeneratorPanel {
               if (!currentConnector) {
                 throw new Error("No database connection active.");
               }
-              const { schema, configs, useAi, prompt } = message;
+              const { schema, configs, useAi, prompt, apiKey } = message;
               vscode.window.showInformationMessage('Starting data generation...');
               
               const generator = new DataGenerator();
-              const generatedData = await generator.generate(schema, configs, useAi, prompt);
+              const generatedData = await generator.generate(schema, configs, useAi, prompt, apiKey);
               
               // Sort tables again for insertion
               const tableNames = configs.filter((c:any) => c.selected).map((c:any) => c.tableName);
@@ -127,8 +127,31 @@ export class GeneratorPanel {
               webview.postMessage({ type: 'generation_complete' });
               vscode.window.showInformationMessage('Data generation and insertion completed successfully!');
             } catch (error: any) {
-              vscode.window.showErrorMessage('Generation failed: ' + error.message);
-              webview.postMessage({ type: 'error', error: error.message });
+              const errMsg = error.message || "";
+              if (message.useAi && (errMsg.includes("Fallo en la generación de IA") || errMsg.includes("Gemini API Key"))) {
+                const choice = await vscode.window.showErrorMessage(
+                  errMsg,
+                  'Generar sin IA'
+                );
+                if (choice === 'Generar sin IA') {
+                  try {
+                    vscode.window.showInformationMessage('Generando datos localmente sin IA...');
+                    const generator = new DataGenerator();
+                    const generatedData = await generator.generate(message.schema, message.configs, false, message.prompt, "");
+                    const tableNames = message.configs.filter((c:any) => c.selected).map((c:any) => c.tableName);
+                    const sortedTables = generator['topologicalSort'](message.schema, tableNames);
+                    await currentConnector.insertData(generatedData, sortedTables);
+                    webview.postMessage({ type: 'generation_complete' });
+                    vscode.window.showInformationMessage('Datos generados localmente con éxito.');
+                  } catch (fallbackErr: any) {
+                    vscode.window.showErrorMessage('Fallo al generar sin IA: ' + fallbackErr.message);
+                    webview.postMessage({ type: 'error', error: fallbackErr.message });
+                  }
+                  return;
+                }
+              }
+              vscode.window.showErrorMessage('Generation failed: ' + errMsg);
+              webview.postMessage({ type: 'error', error: errMsg });
             }
             return;
         }

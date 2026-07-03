@@ -9,6 +9,7 @@ export default function App() {
   const [schema, setSchema] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [useAi, setUseAi] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   const [prompt, setPrompt] = useState("");
   const [tableConfigs, setTableConfigs] = useState<Record<string, { selected: boolean, count: number }>>({});
 
@@ -60,7 +61,8 @@ export default function App() {
       schema, 
       configs: configsToGenerate,
       useAi,
-      prompt
+      prompt,
+      apiKey
     });
   };
 
@@ -182,14 +184,26 @@ export default function App() {
                   </label>
 
                   {useAi && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-muted-foreground">Custom Context (Optional)</label>
-                      <textarea 
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-h-[100px]"
-                        placeholder="e.g. Generate data for a tech startup in Peru..."
-                      />
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-muted-foreground">Gemini API Key</label>
+                        <input 
+                          type="password" 
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                          placeholder="AIzaSy..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-muted-foreground">Custom Context (Optional)</label>
+                        <textarea 
+                          value={prompt}
+                          onChange={(e) => setPrompt(e.target.value)}
+                          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-h-[100px]"
+                          placeholder="e.g. Generate data for a tech startup in Peru..."
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
