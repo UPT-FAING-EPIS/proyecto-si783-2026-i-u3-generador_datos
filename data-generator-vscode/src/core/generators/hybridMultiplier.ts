@@ -42,6 +42,13 @@ export function multiplyData(
 
     if (isFakerFriendly) {
       colStrategies[col.name] = "faker";
+    } else if (col.isPrimaryKey && ["INT", "SERIAL"].some(t => col.dataType.toUpperCase().includes(t))) {
+      let currentId = (col.maxId || 0) + seedRows.length;
+      fakerOverrides[col.name] = () => {
+        currentId++;
+        return currentId;
+      };
+      colStrategies[col.name] = "faker";
     } else if (["INT", "SERIAL", "FLOAT", "DOUBLE", "DECIMAL", "NUMERIC"].some(t => col.dataType.toUpperCase().includes(t))) {
       colStrategies[col.name] = "number_jitter";
     } else {
@@ -52,12 +59,18 @@ export function multiplyData(
   const multipliedRows: any[][] = [];
   const columnsOrder = tableSchema.columns.map(c => c.name);
 
+  // Pre-calculate Faker columns
   for (let i = 0; i < targetCount; i++) {
     const row: any[] = [];
     if (i < seedRows.length) {
       // Use exact seed row
-      for (const colName of columnsOrder) {
-        row.push(seedRows[i][colName] ?? null);
+      for (const col of tableSchema.columns) {
+        let val = seedRows[i][col.name] ?? null;
+        // If it's a primary key we override it to ensure it starts from maxId + index
+        if (col.isPrimaryKey && ["INT", "SERIAL"].some(t => col.dataType.toUpperCase().includes(t))) {
+           val = (col.maxId || 0) + i + 1;
+        }
+        row.push(val);
       }
     } else {
       // Mutate

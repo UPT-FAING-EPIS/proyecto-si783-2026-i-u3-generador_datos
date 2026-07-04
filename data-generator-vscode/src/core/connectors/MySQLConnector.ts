@@ -67,9 +67,12 @@ export class MySQLConnector implements BaseConnector {
         try {
           const [maxRow] = await this.connection.execute(`SELECT MAX(${pkCol}) as m FROM ${tableName}`);
           const val = (maxRow as any)[0].m;
-          if (typeof val === 'number') {
-            const col = columns.find(c => c.name === pkCol);
-            if (col) col.maxId = val;
+          if (val !== null && val !== undefined) {
+            const parsedVal = parseInt(val, 10);
+            if (!isNaN(parsedVal)) {
+              const col = columns.find(c => c.name === pkCol);
+              if (col) col.maxId = parsedVal;
+            }
           }
         } catch(e) {}
       }
