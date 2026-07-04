@@ -40,7 +40,10 @@ export function multiplyData(
       fakerOverrides[col.name] = () => fakeInstance.string.uuid();
     }
 
-    if (isFakerFriendly) {
+    if (col.enumValues && col.enumValues.length > 0) {
+      colStrategies[col.name] = "faker";
+      fakerOverrides[col.name] = () => fakeInstance.helpers.arrayElement(col.enumValues!);
+    } else if (isFakerFriendly) {
       colStrategies[col.name] = "faker";
     } else if (col.isPrimaryKey && ["INT", "SERIAL"].some(t => col.dataType.toUpperCase().includes(t))) {
       let currentId = (col.maxId || 0) + seedRows.length;
