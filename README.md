@@ -2,7 +2,7 @@
 
 Este repositorio contiene el ecosistema completo del **Generador de Datos Sintéticos**, una herramienta impulsada por IA (Gemini) y Faker que permite crear datos realistas para bases de datos, con una arquitectura escalable en distintas plataformas.
 
-## 📁 Contenido del Repositorio a Grandes Rasgos
+## 📁 Contenido del Repositorio
 
 El proyecto está dividido en tres módulos principales y una sección de documentación:
 
